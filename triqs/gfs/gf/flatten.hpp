@@ -32,12 +32,18 @@ namespace triqs::gfs {
 
   template <int N, typename... Ms, typename Target> auto flatten_gf_2d(gf_const_view<cartesian_product<Ms...>, Target> g) {
     auto const &m = std::get<N>(g.mesh());
-    return gf<typename std::decay_t<decltype(m)>::var_t, tensor_valued<1>>{m, flatten_2d(g.data(), N), {}};
+    if constexpr (Target::is_real)
+      return gf<typename std::decay_t<decltype(m)>::var_t, tensor_valued<1>>{m, array<dcomplex, 2>(flatten_2d(g.data(), N)), {}};
+    else
+      return gf<typename std::decay_t<decltype(m)>::var_t, tensor_valued<1>>{m, flatten_2d(g.data(), N), {}};
   }
 
   template <int N, typename Var, typename Target> gf<Var, tensor_valued<1>> flatten_gf_2d(gf_const_view<Var, Target> g) {
     static_assert(N == 0, "Internal error");
-    return {g.mesh(), flatten_2d(g.data(), 0), {}};
+    if constexpr (Target::is_real)
+      return {g.mesh(), array<dcomplex, 2>(flatten_2d(g.data(), 0)), {}};
+    else
+      return {g.mesh(), flatten_2d(g.data(), 0), {}};
   }
 
 } // namespace triqs::gfs
