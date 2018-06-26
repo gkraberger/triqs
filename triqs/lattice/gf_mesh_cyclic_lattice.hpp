@@ -45,7 +45,7 @@ namespace triqs {
 
       ///Construct gf_mesh<cyclic_lattice> from three linear sizes assuming a cubic lattice (backward compatibility)
       gf_mesh(int L1 = 1, int L2 = 1, int L3 = 1)
-	 : bl{make_unit_matrix<double>(3)}, cluster_mesh{make_unit_matrix<double>(3), matrix<int>{{{L1, 0, 0}, {0, L2, 0}, {0, 0, L3}}}} {}
+         : bl{make_unit_matrix<double>(3)}, cluster_mesh{make_unit_matrix<double>(3), matrix<int>{{{L1, 0, 0}, {0, L2, 0}, {0, 0, L3}}}} {}
 
       ///Construct gf_mesh<cyclic_lattice> from domain (bravais_lattice) and int L (linear size of Cluster mesh)
       gf_mesh(bravais_lattice const &bl_, int L)
@@ -68,16 +68,15 @@ namespace triqs {
 
       // ------------------- Comparison -------------------
 
-      bool operator==(gf_mesh<cyclic_lattice> const &M) const {
-	return bl == M.domain() && cluster_mesh::operator==(M);
-      }
+      bool operator==(gf_mesh<cyclic_lattice> const &M) const { return bl == M.domain() && cluster_mesh::operator==(M); }
 
       bool operator!=(gf_mesh<cyclic_lattice> const &M) const { return !(operator==(M)); }
 
       // -------------------- print -------------------
 
       friend std::ostream &operator<<(std::ostream &sout, gf_mesh const &m) {
-        return sout << "Cyclic Lattice Mesh with linear dimensions " << m.dims << "\n -- units = " << m.units << "\n -- periodization_matrix = " << m.periodization_matrix << "\n -- Domain: " << m.domain();
+        return sout << "Cyclic Lattice Mesh with linear dimensions " << m.dims << "\n -- units = " << m.units
+                    << "\n -- periodization_matrix = " << m.periodization_matrix << "\n -- Domain: " << m.domain();
       }
 
       // -------------- HDF5  --------------------------
@@ -87,13 +86,15 @@ namespace triqs {
       friend void h5_write(h5::group fg, std::string const &subgroup_name, gf_mesh const &m) {
         h5_write_impl(fg, subgroup_name, m, "MeshCyclicLattice");
         h5::group gr = fg.open_group(subgroup_name);
-        h5_write(gr, "bl", m.bl);
+        h5_write(gr, "bravais_lattice", m.bl);
       }
 
       friend void h5_read(h5::group fg, std::string const &subgroup_name, gf_mesh &m) {
         h5_read_impl(fg, subgroup_name, m, "MeshCyclicLattice");
         h5::group gr = fg.open_group(subgroup_name);
-        h5_read(gr, "bl", m.bl);
+        try { // Care for Backward Compatibility
+          h5_read(gr, "bravais_lattice", m.bl);
+        } catch (triqs::runtime_error const &re) {}
       }
     };
   } // namespace gfs
